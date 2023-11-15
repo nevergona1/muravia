@@ -1,52 +1,100 @@
-import tkinter as tk
+from pygame import *
+import sys
+from random import randint
 
-def draw_maze(canvas, maze):
-    cell_size = 30  # Размер ячейки лабиринта
+init()
 
-    for row in range(len(maze)):
-        for col in range(len(maze[row])):
-            if maze[row][col] == 1:
-                cell_color = "black"
-            elif maze[row][col] == 2:
-                cell_color = "white"
-            else:
-                cell_color = "gray"
+sc = display.set_mode((500, 550))
+display.set_caption("Муравьиная колония")
 
-            x = col * cell_size
-            y = row * cell_size
-            canvas.create_rectangle(x, y, x + cell_size, y + cell_size, fill=cell_color, outline="black")
+class Ant:
+    def __init__(self, x, y, width, height):
+        self.rect = Rect(x, y, width, height)
 
-def toggle_cell(event):
-    col = event.x // cell_size
-    row = event.y // cell_size
+    def move(self, dx, dy, maze_surface):
+        # Проверяем, есть ли черный цвет в будущем положении муравья
+        future_rect = self.rect.move(dx, dy)
+        for x in range(future_rect.left, future_rect.right):
+            for y in range(future_rect.top, future_rect.bottom):
+                if maze_surface.get_at((x, y)) == (0, 0, 0):
+                    return  # Не перемещаем муравья, если будущее положение содержит черный цвет
 
-    if 0 <= row < len(maze) and 0 <= col < len(maze[0]):
-        maze[row][col] = 1 if maze[row][col] == 0 else 0
-        draw_maze(canvas, maze)
+        self.rect.x += dx
+        self.rect.y += dy
 
-# Создаем главное окно
-root = tk.Tk()
-root.title("Редактор лабиринта")
+    def draw(self, surface):
+        draw.rect(surface, (randint(0, 255), randint(0, 255), randint(0, 255)), self.rect)
 
-# Создаем холст
-canvas_width = 600
-canvas_height = 600
-canvas = tk.Canvas(root, width=canvas_width, height=canvas_height, bg="white")
-canvas.pack()
+class Maze:
+    def __init__(self, maze_layout):
+        self.maze_layout = maze_layout
+        self.block_size = 50
+        self.maze_rects = []
+        self.surface = Surface((500, 550), SRCALPHA)  # Используем SRCALPHA для сохранения альфа-канала
 
-# Размер ячейки лабиринта
-cell_size = 30  
+        for row_index, row in enumerate(self.maze_layout):
+            for col_index, cell in enumerate(row):
+                if cell == 1:
+                    rect = Rect(col_index * self.block_size, row_index * self.block_size, self.block_size, self.block_size)
+                    self.maze_rects.append(rect)
+                    draw.rect(self.surface, (0, 0, 0), rect)
 
-# Создаем пустой лабиринт
-maze_width = canvas_width // cell_size
-maze_height = canvas_height // cell_size
-maze = [[0] * maze_width for _ in range(maze_height)]
+    def draw(self, surface):
+        surface.blit(self.surface, (0, 0))
 
-# Привязываем событие клика мыши
-canvas.bind("<Button-1>", toggle_cell)
+maze_layout = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [0, 0, 1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 0, 2],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+]
 
-# Рисуем лабиринт на холсте
-draw_maze(canvas, maze)
+maze = Maze(maze_layout)
+a = 0
+ants = []
 
-# Запускаем главный цикл
-root.mainloop()
+for i in range(10):
+    ant = Ant(25, 125, 5, 5)  # Изменили размер муравья на 5x5 пикселей
+    ants.append(ant)
+
+x, y = 100, 100
+
+while True:
+    for e in event.get():
+        if e.type == QUIT:
+            quit()
+            sys.exit()
+
+    keys = key.get_pressed()
+
+    sc.fill((255, 255, 255))
+    maze.draw(sc)
+
+    for ant in ants:
+        ant.draw(sc)
+
+        for rect in maze.maze_rects:
+            if ant.rect.colliderect(rect):
+                # Обработка столкновения с препятствием
+                ant.rect.clamp_ip(rect)
+
+        if keys[K_LEFT]:
+            ant.move(-5, 0, maze.surface)
+        if keys[K_RIGHT]:
+            ant.move(5, 0, maze.surface)
+        if keys[K_UP]:
+            ant.move(0, -5, maze.surface)
+        if keys[K_DOWN]:
+            ant.move(0, 5, maze.surface)
+
+        # Ограничиваем движение муравьев внутри экрана
+        ant.rect.clamp_ip(sc.get_rect())
+
+    display.update()
