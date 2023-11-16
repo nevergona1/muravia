@@ -22,6 +22,7 @@ class Ant:
                         return  # Не перемещаем муравья, если будущее положение содержит черный цвет
                     if maze_surface.get_at((x, y)) == (0, 255, 0):
                         print("победа")
+                        return True
                         
         self.rect.x += dx
         self.rect.y += dy
@@ -121,14 +122,15 @@ while True:
     player.draw(sc)
     for ant in ants:
         ant.draw(sc)
-        
+        ant.move(randint(-1,1),randint(-1,1),maze.surface)
+        # if ant.move(randint(-1,1),randint(-1,1),maze.surface) == True:
+
+        ant.rect.clamp_ip(sc.get_rect())
         # for rect in maze.maze_rects:
         #     if ant.rect.colliderect(rect):
+                
         #         ant.rect.clamp_ip(rect)
                 
-        ant.move(randint(-1,1),randint(-1,1),maze.surface)
         
-        ant.rect.clamp_ip(sc.get_rect())
 
     display.update()
-
