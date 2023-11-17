@@ -1,6 +1,6 @@
 from pygame import *
 import sys
-from random import randint
+from random import randint,choice
 
 init()
 
@@ -9,19 +9,24 @@ display.set_caption("Муравьиная колония")
 class Ant:
     def __init__(self, x, y, width, height):
         self.rect = Rect(x, y, width, height)
-
-    def move(self, dx, dy, maze_surface):
+        self.direction = (1,0)
+    def move(self, maze_surface):
+        dx, dy = self.direction
+        # dx *= 4
+        # dy *= 4
         
-        dx *= 4
-        dy *= 4
         future_rect = self.rect.move(dx, dy)
         for x in range(future_rect.left, future_rect.right):
             for y in range(future_rect.top, future_rect.bottom):
                 if 0 <= x < maze_surface.get_width() and 0 <= y < maze_surface.get_height():
                     if maze_surface.get_at((x, y)) == (0, 0, 0):
+                        self.direction = choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
                         return  
-                    if maze_surface.get_at((x, y)) == (0, 255, 0):
-                        return True
+                    elif maze_surface.get_at((x, y)) == (255,255,0):
+                        if self.direction == (1,0) or self.direction == (-1,0):
+                            self.direction = choice([(0, 1), (0, -1)])    
+                        else:    
+                            self.direction = choice([(1, 0), (-1, 0)])  
                         
         self.rect.x += dx
         self.rect.y += dy
@@ -45,16 +50,19 @@ class Maze:
                     rect_forwin = Rect(col_index * self.block_size, row_index * self.block_size, self.block_size, self.block_size)
                     self.maze_rects.append(rect_forwin)
                     draw.rect(self.surface, (0, 255,0), rect_forwin)    
-
+                elif cell == 3:
+                    rect = Rect(col_index * self.block_size, row_index * self.block_size, self.block_size, self.block_size)
+                    # self.maze_rects.append(rect)
+                    draw.rect(self.surface, (255,255,0), rect)
     def draw(self, surface):
         surface.blit(self.surface, (0, 0))
 
 maze_layout =[
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+    [1, 0, 0, 0, 1, 0, 0, 3, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
     [1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1],
-    [1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1],
+    [1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 3, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1],
     [1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1],
     [1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1],
     [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1],
@@ -96,7 +104,7 @@ maze = Maze(maze_layout)
 ants = []
 
 for i in range(100):
-    ant = Ant(10, 45, 5, 5)  
+    ant = Ant(27, 47, 5, 5)  
     ants.append(ant)
 while True:
     for e in event.get():
@@ -108,7 +116,7 @@ while True:
     maze.draw(sc)
     for ant in ants:
         ant.draw(sc)
-        ant.move(randint(-1,1),randint(-1,1),maze.surface)
+        ant.move(maze.surface)
         ant.rect.clamp_ip(sc.get_rect())
 
         
