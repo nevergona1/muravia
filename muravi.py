@@ -22,7 +22,7 @@ class Ant:
         left_color = maze_surface.get_at((int(x - 8), int(y)))
         
         bottom_color = maze_surface.get_at((int(x), int(y+8)))
-
+        
         return top_color, right_color, left_color, bottom_color
     
     def move(self,maze_surface):
@@ -36,22 +36,17 @@ class Ant:
         for x in range(future_rect.left, future_rect.right):
             for y in range(future_rect.top, future_rect.bottom):
                 if 0 <= x < maze_surface.get_width() and 0 <= y < maze_surface.get_height():
-                    # if maze_surface.get_at((x, y)) == (0, 0, 0):
-                        # self.direction = choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
-                        # return  
-                    
-                    if top_color == (0,0,0,255):
-                        self.direction = choice([(1, 0), (-1, 0), (0, 1)])   
-                        print("t")
+                    if maze_surface.get_at((x, y)) == (0, 0, 0):
+                        self.direction = choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
+                        return  
                     elif right_color == (0,0,0,255):    
                         self.direction = choice([ (-1, 0), (0, 1), (0, -1)])
-                        print("r")    
+                    elif top_color == (0,0,0,255):
+                        self.direction = choice([(1, 0), (-1, 0), (0, 1)])   
                     elif left_color == (0,0,0,255):
                         self.direction = choice([(1, 0), (0, 1), (0, -1)])
-                        print("l")
                     elif bottom_color == (0,0,0,255):
                         self.direction = choice([(1, 0), (-1, 0), (0, -1)])
-                        print("b")
         self.rect.x += dx
         self.rect.y += dy
 
@@ -127,7 +122,7 @@ maze_layout =[
 maze = Maze(maze_layout)
 ants = []
 for i in range(100):
-    ant = Ant(18, 48, 4, 4)  
+    ant = Ant(28, 48, 4, 4)  
     ants.append(ant)
 while True:
     for e in event.get():
@@ -138,9 +133,8 @@ while True:
     sc.fill((255, 255, 255))
     maze.draw(sc)
     for ant in ants:
+        ant.rect.clamp_ip(sc.get_rect()) 
         ant.draw(sc)
         ant.move(maze.surface)
-        ant.rect.clamp_ip(sc.get_rect())
 
-        
     display.update()
