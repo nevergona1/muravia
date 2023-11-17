@@ -19,9 +19,8 @@ class Ant:
             for y in range(future_rect.top, future_rect.bottom):
                 if 0 <= x < maze_surface.get_width() and 0 <= y < maze_surface.get_height():
                     if maze_surface.get_at((x, y)) == (0, 0, 0):
-                        return  # Не перемещаем муравья, если будущее положение содержит черный цвет
+                        return  
                     if maze_surface.get_at((x, y)) == (0, 255, 0):
-                        print("победа")
                         return True
                         
         self.rect.x += dx
@@ -94,43 +93,23 @@ maze_layout =[
 
 
 maze = Maze(maze_layout)
-a = 0
 ants = []
 
 for i in range(100):
     ant = Ant(10, 45, 5, 5)  
     ants.append(ant)
-player= Ant(10,45,5,5)
 while True:
     for e in event.get():
         if e.type == QUIT:
             quit()
             sys.exit()
 
-    keys = key.get_pressed()
-    if keys[K_LEFT]:
-        player.move(-1, 0, maze.surface)
-    if keys[K_RIGHT]:
-        player.move(1, 0, maze.surface)
-    if keys[K_UP]:
-        player.move(0, -1, maze.surface)
-    if keys[K_DOWN]:
-        player.move(0, 1, maze.surface)
-    
     sc.fill((255, 255, 255))
     maze.draw(sc)
-    player.draw(sc)
     for ant in ants:
         ant.draw(sc)
         ant.move(randint(-1,1),randint(-1,1),maze.surface)
-        # if ant.move(randint(-1,1),randint(-1,1),maze.surface) == True:
-
         ant.rect.clamp_ip(sc.get_rect())
-        # for rect in maze.maze_rects:
-        #     if ant.rect.colliderect(rect):
-                
-        #         ant.rect.clamp_ip(rect)
-                
-        
 
+        
     display.update()
