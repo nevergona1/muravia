@@ -6,33 +6,43 @@ init()
 
 sc = display.set_mode((1000, 800))
 display.set_caption("Муравьиная колония")
+pherom = False
 class Ant:
     def __init__(self, x, y, width, height):
         self.rect = Rect(x, y, width, height)
         self.direction = (1,0)
-
-    def look_around(self, maze_surface):
+        self.phiramons = []
+        self.pherom = False
+        self.px = 8
+    def look_around(self, maze_surface,px):
         x, y = self.rect.center
-        top_color = maze_surface.get_at((int(x), int(y-8)))
-        right_color = maze_surface.get_at((int(x + 8), int(y)))
-        left_color = maze_surface.get_at((int(x - 8), int(y)))
-        bottom_color = maze_surface.get_at((int(x), int(y+8)))
+        top_color = maze_surface.get_at((int(x), int(y-px)))        
+        right_color = maze_surface.get_at((int(x + px), int(y)))        
+        left_color = maze_surface.get_at((int(x - px), int(y)))        
+        bottom_color = maze_surface.get_at((int(x), int(y+px)))        
         return top_color, right_color, left_color, bottom_color
     
     def move(self,maze_surface):
         dx, dy = self.direction
-        # dx *= 4
-        # dy *= 4
+        # dx *= 0.5
+        # dy *= 0.5
         
         future_rect = self.rect.move(dx, dy)
-        top_color, right_color, left_color, bottom_color = self.look_around(maze_surface)
+        top_color, right_color, left_color, bottom_color = self.look_around(maze_surface,self.px)
         
         for x in range(future_rect.left, future_rect.right):
             for y in range(future_rect.top, future_rect.bottom):
-                if 0 <= x < maze_surface.get_width() and 0 <= y < maze_surface.get_height():
-                    if maze_surface.get_at((x, y)) == (0, 0, 0):
+                if 10 < x < maze_surface.get_width() and 10 < y < maze_surface.get_height():
+                    if maze_surface.get_at((x, y)) == (0,0,0):
                         self.direction = choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
                         return  
+                    if maze_surface.get_at((x, y)) == (0,255,0):
+                        for i in self.phiramons:
+                            draw.rect(maze_surface,(100,100,255), i)
+                        return
+                    if maze_surface.get_at((x, y)) == (100,100,255): 
+                        self.pherom = True  
+                        self.px = 1 
                     if right_color == (0,0,0,255):    
                         self.direction = choice([ (-1, 0), (0, 1), (0, -1)])
                     if top_color == (0,0,0,255):
@@ -41,6 +51,18 @@ class Ant:
                         self.direction = choice([(1, 0), (0, 1), (0, -1)])
                     if bottom_color == (0,0,0,255):
                         self.direction = choice([(1, 0), (-1, 0), (0, -1)])
+                        
+                    if self.pherom:
+                        if right_color == (255,255,255,255):    
+                            self.direction = choice([ (-1, 0), (0, 1), (0, -1)])
+                        if top_color == (255,255,255,255):
+                            self.direction = choice([(1, 0), (-1, 0), (0, 1)])   
+                        if left_color == (255,255,255,255):
+                            self.direction = choice([(1, 0), (0, 1), (0, -1)])
+                        if bottom_color == (255,255,255,255):
+                            self.direction = choice([(1, 0), (-1, 0), (0, -1)])    
+        rect = Rect(x-10,y-10,10,10)
+        self.phiramons.append(rect)           
         self.rect.x += dx
         self.rect.y += dy
 
@@ -72,8 +94,8 @@ class Maze:
 
 maze_layout =[
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1],
     [1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1],
     [1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1],
     [1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1],
@@ -112,9 +134,10 @@ maze_layout =[
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
 
+
 maze = Maze(maze_layout)
 ants = []
-for i in range(100):
+for i in range(200):
     ant = Ant(28, 48, 4, 4)  
     ants.append(ant)
 while True:
@@ -129,5 +152,5 @@ while True:
         ant.rect.clamp_ip(sc.get_rect()) 
         ant.draw(sc)
         ant.move(maze.surface)
-
+    
     display.update()
